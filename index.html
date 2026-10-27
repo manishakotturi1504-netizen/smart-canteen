@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Canteen</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#0F4C5C; --teal-d:#0A3541; --turmeric:#F2A900; --chilli:#D1495B; --mint:#E8F3EF; --ink:#12262B; --leaf:#2E9E6B;
+  --bs-body-font-family:'DM Sans',system-ui,sans-serif; --bs-body-color:var(--ink); --bs-body-bg:#F6FAF8;
+}
+h1,h2,h3,h4,h5,.brand{font-family:'Bricolage Grotesque','DM Sans',sans-serif;letter-spacing:-.01em}
+.navbar{background:var(--teal)!important}
+.navbar .nav-link{color:#d7ebe6;font-weight:500}
+.navbar .nav-link.active,.navbar .nav-link:hover{color:#fff}
+.brand{color:#fff;font-weight:800;font-size:1.35rem;text-decoration:none}
+.brand span{color:var(--turmeric)}
+.btn-turmeric{background:var(--turmeric);color:var(--ink);font-weight:700;border:0}
+.btn-turmeric:hover{background:#ffbd2e;color:var(--ink)}
+.btn-teal{background:var(--teal);color:#fff;border:0}.btn-teal:hover{background:var(--teal-d);color:#fff}
+.view{display:none}.view.active{display:block}
+:focus-visible{outline:3px solid var(--turmeric);outline-offset:2px}
+
+/* HERO */
+.hero{background:radial-gradient(circle at 80% 20%,#1c6b7e 0,var(--teal) 45%,var(--teal-d) 100%);color:#fff;position:relative;overflow:hidden;padding:5rem 0 6rem}
+.hero h1{font-size:clamp(2.4rem,6vw,4.3rem);font-weight:800;line-height:1.02}
+.hero h1 .hl{color:var(--turmeric)}
+.hero p.lead{color:#cfe6e0;max-width:34rem}
+.float-e{position:absolute;font-size:2.6rem;opacity:.9;animation:floaty 7s ease-in-out infinite;user-select:none;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-22px) rotate(8deg)}}
+.hero-in{animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.ticket{background:#fff;color:var(--ink);border-radius:22px;padding:1.4rem 1.6rem;max-width:300px;margin-inline:auto;transform:rotate(3deg);box-shadow:0 30px 60px rgba(0,0,0,.35);position:relative;animation:sway 5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(3deg) translateY(0)}50%{transform:rotate(-2deg) translateY(-10px)}}
+.ticket::before,.ticket::after{content:"";position:absolute;width:26px;height:26px;border-radius:50%;background:var(--teal);top:58%}
+.ticket::before{left:-13px}.ticket::after{right:-13px}
+.ticket .dash{border-top:2px dashed #cbd9d4;margin:1rem -.4rem}
+.fake-qr{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;width:110px;margin:0 auto}
+.fake-qr i{aspect-ratio:1;background:var(--ink);border-radius:1px}
+.fake-qr i.o{background:transparent}
+.pulse-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--turmeric);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(242,169,0,.7)}100%{box-shadow:0 0 0 12px rgba(242,169,0,0)}}
+.wave{position:absolute;bottom:-1px;left:0;width:100%;height:60px}
+
+.meal-chip{border-radius:18px;padding:1.2rem;background:#fff;border:1px solid #dbe8e3;transition:transform .25s,box-shadow .25s;height:100%}
+.meal-chip:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(15,76,92,.14)}
+.meal-chip .em{font-size:2.4rem;display:inline-block}
+.meal-chip:hover .em{animation:wiggle .6s}
+@keyframes wiggle{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.reveal{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* MENU */
+.meal-tabs .btn{border-radius:999px;font-weight:600;border:2px solid var(--teal);color:var(--teal);background:#fff}
+.meal-tabs .btn.active{background:var(--teal);color:#fff}
+.food{background:#fff;border-radius:20px;overflow:hidden;border:1px solid #dbe8e3;height:100%;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s;animation:pop .5s both}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.food:hover{transform:translateY(-5px);box-shadow:0 14px 28px rgba(15,76,92,.15)}
+.food .pic{height:150px;display:flex;align-items:center;justify-content:center;font-size:4.2rem;position:relative;background:var(--mint);overflow:hidden}
+.food .pic img{width:100%;height:100%;object-fit:cover}
+.food .pic .em{transition:transform .3s}
+.food:hover .pic .em{transform:scale(1.2) rotate(-6deg)}
+.food .tag{position:absolute;top:10px;left:10px;font-size:.75rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;color:#fff}
+.tag.ok{background:var(--leaf)}.tag.low{background:#e08a00}.tag.out{background:var(--chilli)}
+.food.soldout{filter:grayscale(.8);opacity:.7}
+.price{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.25rem;color:var(--teal)}
+.bump{animation:bump .4s}
+@keyframes bump{40%{transform:scale(1.5)}}
+
+/* ORDERS */
+.order{background:#fff;border:1px solid #dbe8e3;border-radius:18px;padding:1.2rem;animation:pop .4s both}
+.steps{display:flex;gap:6px;margin:.8rem 0}
+.steps div{flex:1;text-align:center;font-size:.78rem;font-weight:600;padding:.4rem .2rem;border-radius:8px;background:#e6efec;color:#6b8580}
+.steps div.done{background:var(--leaf);color:#fff}
+.steps div.cur{background:var(--turmeric);color:var(--ink);animation:pulse2 1.6s infinite}
+@keyframes pulse2{50%{transform:scale(1.05)}}
+.st{font-weight:700;padding:.25rem .7rem;border-radius:999px;font-size:.8rem}
+.st.Pending{background:#fff1d1;color:#8a5a00}.st.Preparing{background:#d9ecff;color:#0b4a8f}
+.st.Ready{background:#d7f3e5;color:#146c43}.st.Collected{background:#e4e4e4;color:#444}
+.qrbox{background:#fff;padding:8px;border-radius:12px;display:inline-block;border:1px solid #dbe8e3}
+.token{font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:.08em}
+
+/* AUTH / ADMIN */
+.auth-card{max-width:440px;margin:3rem auto;background:#fff;border-radius:22px;padding:2rem;box-shadow:0 20px 50px rgba(15,76,92,.12);animation:pop .5s both}
+.stat{background:#fff;border-radius:18px;padding:1.2rem;border:1px solid #dbe8e3}
+.stat b{font-family:'Bricolage Grotesque';font-size:2rem;color:var(--teal)}
+.table td,.table th{vertical-align:middle}
+.emo-sm{font-size:1.8rem}
+.toast-wrap{position:fixed;bottom:1rem;right:1rem;z-index:2000}
+footer{color:#6b8580}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark">
+  <div class="container">
+    <a class="brand" href="#" onclick="go('home');return false">🍽️ Smart<span>Canteen</span></a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nv" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nv">
+      <ul class="navbar-nav me-auto ms-lg-4" id="navLinks"></ul>
+      <div class="d-flex align-items-center gap-2" id="navRight"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<section id="v-home" class="view">
+  <div class="hero">
+    <span class="float-e" style="left:4%;top:14%;animation-delay:0s">🥞</span>
+    <span class="float-e" style="left:42%;top:8%;animation-delay:1.2s">🍟</span>
+    <span class="float-e" style="right:6%;top:12%;animation-delay:2s">🍛</span>
+    <span class="float-e" style="left:8%;bottom:16%;animation-delay:.6s">☕</span>
+    <span class="float-e" style="right:36%;bottom:14%;animation-delay:2.6s">🥟</span>
+    <div class="container position-relative">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7 hero-in">
+          <span class="badge rounded-pill text-bg-warning mb-3 px-3 py-2"><span class="pulse-dot me-1"></span> Now serving: <span id="nowServing">Lunch</span></span>
+          <h1>Order now.<br>Skip the <span class="hl">queue.</span></h1>
+          <p class="lead mt-3">See today's menu, check what's left, order from your seat and collect with a QR token.</p>
+          <div class="d-flex flex-wrap gap-2 mt-4" id="heroCta"></div>
+        </div>
+        <div class="col-lg-5 hero-in" style="animation-delay:.25s">
+          <div class="ticket">
+            <div class="d-flex justify-content-between small fw-bold"><span>ORDER TOKEN</span><span class="text-success">● Preparing</span></div>
+            <div class="token fs-4 mt-1">SC-7Q4K2M</div>
+            <div class="dash"></div>
+            <div class="fake-qr" id="fakeQr"></div>
+            <div class="small text-center mt-2 text-secondary">Show this at the counter</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <svg class="wave" viewBox="0 0 1440 60" preserveAspectRatio="none"><path fill="#F6FAF8" d="M0,32 C240,70 480,0 720,28 C960,56 1200,60 1440,24 L1440,60 L0,60 Z"/></svg>
+  </div>
+
+  <div class="container py-5">
+    <h2 class="text-center mb-1 reveal">Four meals, one menu</h2>
+    <p class="text-center text-secondary mb-4 reveal">Fresh items every day. Prices and stock update live.</p>
+    <div class="row g-3" id="homeMeals"></div>
+
+    <div class="row g-3 mt-4 text-center">
+      <div class="col-md-4 reveal"><div class="meal-chip"><div class="em">🔎</div><h5 class="mt-2">1. Pick</h5><p class="mb-0 text-secondary">Browse the menu and see what is in stock.</p></div></div>
+      <div class="col-md-4 reveal"><div class="meal-chip"><div class="em">🛒</div><h5 class="mt-2">2. Order</h5><p class="mb-0 text-secondary">Add items to your cart and place the order.</p></div></div>
+      <div class="col-md-4 reveal"><div class="meal-chip"><div class="em">📲</div><h5 class="mt-2">3. Collect</h5><p class="mb-0 text-secondary">Track the status, then show your QR token.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- AUTH -->
+<section id="v-auth" class="view">
+  <div class="container">
+    <div class="auth-card">
+      <ul class="nav nav-pills nav-fill mb-3" id="authTabs">
+        <li class="nav-item"><button class="nav-link active" data-m="login">Log in</button></li>
+        <li class="nav-item"><button class="nav-link" data-m="register">Register</button></li>
+      </ul>
+      <div id="roleRow" class="mb-3">
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="role" id="rS" value="student" checked><label class="btn btn-outline-secondary" for="rS">🎓 Student</label>
+          <input type="radio" class="btn-check" name="role" id="rA" value="admin"><label class="btn btn-outline-secondary" for="rA">🧑‍🍳 Canteen admin</label>
+        </div>
+      </div>
+      <div id="regOnly">
+        <div class="mb-3"><label class="form-label">Full name</label><input id="aName" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">Roll number</label><input id="aRoll" class="form-control"></div>
+      </div>
+      <div class="mb-3"><label class="form-label">Email</label><input id="aEmail" type="email" class="form-control"></div>
+      <div class="mb-3"><label class="form-label">Password</label><input id="aPass" type="password" class="form-control"></div>
+      <div id="authErr" class="text-danger small mb-2"></div>
+      <button class="btn btn-teal w-100 py-2" id="authBtn">Log in</button>
+      <p class="small text-secondary mt-3 mb-0" id="authHint">Admin demo login: admin@canteen.com / admin123</p>
+    </div>
+  </div>
+</section>
+
+<!-- STUDENT MENU -->
+<section id="v-menu" class="view">
+  <div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+      <div><h2 class="mb-0">Today's menu</h2><div class="text-secondary" id="menuDate"></div></div>
+      <div class="meal-tabs btn-group" id="mealTabs"></div>
+    </div>
+    <div class="row g-3" id="foodGrid"></div>
+  </div>
+</section>
+
+<!-- STUDENT ORDERS -->
+<section id="v-orders" class="view">
+  <div class="container py-4">
+    <h2>My orders</h2>
+    <p class="text-secondary">Status updates here by itself. Show the QR code at the counter.</p>
+    <div class="row g-3" id="myOrders"></div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section id="v-admin" class="view">
+  <div class="container py-4">
+    <h2>Canteen dashboard</h2>
+    <ul class="nav nav-tabs mb-3" id="adminTabs">
+      <li class="nav-item"><button class="nav-link active" data-t="ov">Overview</button></li>
+      <li class="nav-item"><button class="nav-link" data-t="food">Manage food</button></li>
+      <li class="nav-item"><button class="nav-link" data-t="ord">Orders <span class="badge text-bg-danger" id="pendBadge">0</span></button></li>
+      <li class="nav-item"><button class="nav-link" data-t="ver">Verify token</button></li>
+    </ul>
+    <div id="adminBody"></div>
+  </div>
+</section>
+
+<footer class="text-center py-4 small">Smart Canteen · data is stored in this browser</footer>
+
+<!-- CART -->
+<div class="offcanvas offcanvas-end" id="cartCanvas" tabindex="-1">
+  <div class="offcanvas-header"><h5 class="offcanvas-title">🛒 Your cart</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+  <div class="offcanvas-body d-flex flex-column" id="cartBody"></div>
+</div>
+
+<!-- FOOD MODAL -->
+<div class="modal fade" id="foodModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="fmTitle">Add food</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="fId">
+    <div class="row g-2">
+      <div class="col-8"><label class="form-label">Name</label><input id="fName" class="form-control"></div>
+      <div class="col-4"><label class="form-label">Emoji</label><input id="fEmoji" class="form-control" value="🍽️"></div>
+      <div class="col-6"><label class="form-label">Meal</label>
+        <select id="fCat" class="form-select"><option>Breakfast</option><option>Lunch</option><option>Snacks</option><option>Dinner</option></select></div>
+      <div class="col-3"><label class="form-label">Price (₹)</label><input id="fPrice" type="number" min="0" class="form-control"></div>
+      <div class="col-3"><label class="form-label">Stock</label><input id="fStock" type="number" min="0" class="form-control"></div>
+      <div class="col-12"><label class="form-label">Picture link (optional)</label><input id="fImg" class="form-control" placeholder="https://..."></div>
+    </div>
+    <div class="text-danger small mt-2" id="fErr"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-teal" id="fSave">Save food</button></div>
+</div></div></div>
+
+<!-- ORDER SUCCESS MODAL -->
+<div class="modal fade" id="tokModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content text-center p-4">
+  <div class="fs-1">🎉</div><h4>Order placed</h4>
+  <div class="token fs-3 my-1" id="tokText"></div>
+  <div class="qrbox mx-auto my-2" id="tokQr"></div>
+  <p class="text-secondary small">Show this QR code at the counter. You can track it in My orders.</p>
+  <button class="btn btn-teal" data-bs-dismiss="modal" onclick="go('orders')">Track my order</button>
+</div></div></div>
+
+<div class="toast-wrap"><div id="toast" class="toast align-items-center text-bg-dark border-0"><div class="d-flex"><div class="toast-body" id="toastMsg"></div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ---------- helpers & storage ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LS={get:(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const MEALS=['Breakfast','Lunch','Snacks','Dinner'];
+const MEAL_EMOJI={Breakfast:'🥞',Lunch:'🍱',Snacks:'🥟',Dinner:'🍜'};
+const MEAL_TIME={Breakfast:'7:30 – 10:30 am',Lunch:'12:00 – 2:30 pm',Snacks:'4:00 – 6:00 pm',Dinner:'7:30 – 9:30 pm'};
+const STATUS=['Pending','Preparing','Ready','Collected'];
+const inr=n=>'₹'+Number(n).toLocaleString('en-IN');
+
+function seed(){
+  if(!LS.get('cc_users')) LS.set('cc_users',[{id:'admin1',name:'Canteen Admin',email:'admin@canteen.com',pass:'admin123',role:'admin'}]);
+  if(!LS.get('cc_menu')){
+    const m=(n,e,c,p,s)=>({id:uid(),name:n,emoji:e,cat:c,price:p,stock:s,img:''});
+    LS.set('cc_menu',[
+      m('Idli Sambar','🍲','Breakfast',30,40),m('Masala Dosa','🥞','Breakfast',50,35),m('Poori Bhaji','🫓','Breakfast',45,25),m('Veg Upma','🍛','Breakfast',30,30),
+      m('Veg Meals','🍱','Lunch',80,50),m('Chicken Biryani','🍗','Lunch',120,30),m('Paneer Butter Masala','🧀','Lunch',100,25),m('Curd Rice','🥣','Lunch',50,30),
+      m('Samosa','🥟','Snacks',15,60),m('Veg Puff','🥐','Snacks',20,40),m('French Fries','🍟','Snacks',40,30),m('Masala Tea','☕','Snacks',10,80),m('Cold Coffee','🧋','Snacks',40,25),
+      m('Chapati & Curry','🫓','Dinner',60,40),m('Veg Fried Rice','🍚','Dinner',70,30),m('Egg Curry Rice','🍳','Dinner',80,25),m('Veg Noodles','🍜','Dinner',65,30)
+    ]);
+  }
+  if(!LS.get('cc_orders')) LS.set('cc_orders',[]);
+}
+seed();
+const users=()=>LS.get('cc_users',[]), menu=()=>LS.get('cc_menu',[]), orders=()=>LS.get('cc_orders',[]);
+let me=LS.get('cc_session',null);
+const cartKey=()=>'cc_cart_'+(me?me.id:'x');
+const cart=()=>LS.get(cartKey(),{});
+
+function toast(msg){$('#toastMsg').textContent=msg;bootstrap.Toast.getOrCreateInstance($('#toast'),{delay:2200}).show()}
+function nowMeal(){const h=new Date().getHours();return h<11?'Breakfast':h<15?'Lunch':h<19?'Snacks':'Dinner'}
+function stockTag(f){return f.stock<=0?['out','Sold out']:f.stock<=10?['low','Only '+f.stock+' left']:['ok','Available · '+f.stock]}
+function makeQR(el,text){el.innerHTML='';if(window.QRCode){new QRCode(el,{text,width:150,height:150,correctLevel:QRCode.CorrectLevel.M})}else{el.innerHTML='<div class="token p-3">'+esc(text)+'</div>'}}
+
+/* ---------- navigation ---------- */
+let view='home', mealTab=nowMeal(), adminTab='ov';
+function go(v){
+  if((v==='menu'||v==='orders')&&(!me||me.role!=='student')){v='auth'}
+  if(v==='admin'&&(!me||me.role!=='admin')){v='auth'}
+  view=v;
+  $$('.view').forEach(x=>x.classList.remove('active'));$('#v-'+v).classList.add('active');
+  renderNav();
+  if(v==='home')renderHome();
+  if(v==='menu')renderMenu();
+  if(v==='orders')renderOrders(true);
+  if(v==='admin')renderAdmin(true);
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('#nv').classList.remove('show');
+}
+function renderNav(){
+  const L=[['home','Home']];
+  if(me&&me.role==='student')L.push(['menu','Menu'],['orders','My orders']);
+  if(me&&me.role==='admin')L.push(['admin','Dashboard']);
+  $('#navLinks').innerHTML=L.map(([k,t])=>`<li class="nav-item"><a class="nav-link ${view===k?'active':''}" href="#" onclick="go('${k}');return false">${t}</a></li>`).join('');
+  let r='';
+  if(!me) r=`<button class="btn btn-turmeric btn-sm px-3" onclick="openAuth('login')">Log in</button><button class="btn btn-outline-light btn-sm px-3" onclick="openAuth('register')">Register</button>`;
+  else{
+    if(me.role==='student'){const n=Object.values(cart()).reduce((a,b)=>a+b,0);
+      r+=`<button class="btn btn-turmeric btn-sm position-relative" id="cartBtn" data-bs-toggle="offcanvas" data-bs-target="#cartCanvas" onclick="renderCart()">🛒 Cart <span class="badge text-bg-danger" id="cartCount">${n}</span></button>`}
+    r+=`<span class="text-white small d-none d-lg-inline">Hi, ${esc(me.name.split(' ')[0])}</span><button class="btn btn-outline-light btn-sm" onclick="logout()">Log out</button>`;
+  }
+  $('#navRight').innerHTML=r;
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  $('#nowServing').textContent=nowMeal();
+  $('#heroCta').innerHTML=!me?`<button class="btn btn-turmeric btn-lg px-4" onclick="openAuth('register')">Create student account</button><button class="btn btn-outline-light btn-lg px-4" onclick="openAuth('login')">I have an account</button>`
+    :me.role==='student'?`<button class="btn btn-turmeric btn-lg px-4" onclick="go('menu')">See today's menu</button><button class="btn btn-outline-light btn-lg px-4" onclick="go('orders')">My orders</button>`
+    :`<button class="btn btn-turmeric btn-lg px-4" onclick="go('admin')">Open dashboard</button>`;
+  const m=menu();
+  $('#homeMeals').innerHTML=MEALS.map((c,i)=>{
+    const items=m.filter(f=>f.cat===c);
+    return `<div class="col-6 col-lg-3 reveal" style="transition-delay:${i*90}ms"><div class="meal-chip">
+      <div class="em">${MEAL_EMOJI[c]}</div><h5 class="mt-2 mb-0">${c}</h5>
+      <div class="small text-secondary mb-2">${MEAL_TIME[c]}</div>
+      <div class="small">${items.slice(0,3).map(f=>f.emoji+' '+esc(f.name)).join('<br>')||'No items yet'}</div>
+      <div class="small mt-2 fw-bold text-success">${items.filter(f=>f.stock>0).length} of ${items.length} in stock</div></div></div>`}).join('');
+  observeReveal();
+}
+let io;function observeReveal(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});$$('.reveal').forEach(el=>{el.classList.remove('in');io.observe(el)})}
+(function fq(){const p=[1,1,1,1,1,1,1,0,1, 1,0,0,0,0,0,1,0,1, 1,0,1,1,1,0,1,1,0, 1,0,1,1,1,0,1,0,1, 1,0,1,1,1,0,1,1,1, 1,0,0,0,0,0,1,0,0, 1,1,1,1,1,1,1,0,1, 0,1,0,0,1,0,1,1,0, 1,1,0,1,0,1,0,0,1];$('#fakeQr').innerHTML=p.map(x=>`<i class="${x?'':'o'}"></i>`).join('')})();
+
+/* ---------- auth ---------- */
+let authMode='login';
+function openAuth(m){authMode=m;setAuthMode();go('auth')}
+function setAuthMode(){
+  $$('#authTabs button').forEach(b=>b.classList.toggle('active',b.dataset.m===authMode));
+  const reg=authMode==='register';
+  $('#regOnly').style.display=reg?'block':'none';
+  $('#roleRow').style.display=reg?'none':'block';
+  $('#authBtn').textContent=reg?'Create student account':'Log in';
+  $('#authHint').style.display=reg?'none':'block';
+  $('#authErr').textContent='';
+}
+$$('#authTabs button').forEach(b=>b.onclick=()=>{authMode=b.dataset.m;setAuthMode()});
+$('#authBtn').onclick=()=>{
+  const email=$('#aEmail').value.trim().toLowerCase(), pass=$('#aPass').value, err=$('#authErr');
+  if(!email||!pass){err.textContent='Enter your email and password.';return}
+  const U=users();
+  if(authMode==='register'){
+    const name=$('#aName').value.trim(), roll=$('#aRoll').value.trim();
+    if(!name||!roll){err.textContent='Enter your name and roll number.';return}
+    if(pass.length<4){err.textContent='Use a password with at least 4 characters.';return}
+    if(U.some(u=>u.email===email)){err.textContent='This email is already registered. Log in instead.';return}
+    const u={id:uid(),name,roll,email,pass,role:'student'};U.push(u);LS.set('cc_users',U);
+    me=u;LS.set('cc_session',me);toast('Welcome, '+name.split(' ')[0]+'!');go('menu');
+  }else{
+    const role=document.querySelector('input[name=role]:checked').value;
+    const u=U.find(x=>x.email===email&&x.pass===pass&&x.role===role);
+    if(!u){err.textContent='Email, password or role is wrong. Check and try again.';return}
+    me=u;LS.set('cc_session',me);toast('Logged in as '+u.name);go(u.role==='admin'?'admin':'menu');
+  }
+  $('#aPass').value='';
+};
+function logout(){me=null;localStorage.removeItem('cc_session');toast('You are logged out');go('home')}
+
+/* ---------- student: menu & cart ---------- */
+function renderMenu(){
+  $('#menuDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})+' · now serving '+nowMeal();
+  $('#mealTabs').innerHTML=MEALS.map(c=>`<button class="btn ${c===mealTab?'active':''}" onclick="mealTab='${c}';renderMenu()">${MEAL_EMOJI[c]} ${c}</button>`).join('');
+  const c=cart(), items=menu().filter(f=>f.cat===mealTab);
+  $('#foodGrid').innerHTML=items.length?items.map((f,i)=>{
+    const [cls,txt]=stockTag(f), q=c[f.id]||0;
+    return `<div class="col-6 col-md-4 col-lg-3"><div class="food ${f.stock<=0?'soldout':''}" style="animation-delay:${i*60}ms">
+      <div class="pic">${f.img?`<img src="${esc(f.img)}" alt="${esc(f.name)}" onerror="this.outerHTML='<span class=em>${esc(f.emoji)}</span>'">`:`<span class="em">${esc(f.emoji)}</span>`}<span class="tag ${cls}">${txt}</span></div>
+      <div class="p-3 d-flex flex-column flex-grow-1"><h6 class="mb-1">${esc(f.name)}</h6>
+      <div class="d-flex justify-content-between align-items-center mt-auto pt-2"><span class="price">${inr(f.price)}</span>
+      ${f.stock<=0?'<span class="small text-danger fw-bold">Unavailable</span>':q?`<div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" onclick="chg('${f.id}',-1)">−</button><span class="btn btn-light disabled px-3 fw-bold">${q}</span><button class="btn btn-teal" onclick="chg('${f.id}',1)">+</button></div>`:`<button class="btn btn-turmeric btn-sm" onclick="chg('${f.id}',1)">Add</button>`}
+      </div></div></div></div>`}).join(''):'<p class="text-secondary">Nothing on the '+mealTab.toLowerCase()+' menu yet. Check back later.</p>';
+}
+function chg(id,d){
+  const f=menu().find(x=>x.id===id);if(!f)return;
+  const c=cart();let q=(c[id]||0)+d;
+  if(q>f.stock){toast('Only '+f.stock+' of '+f.name+' left');return}
+  if(q<=0)delete c[id];else c[id]=q;
+  LS.set(cartKey(),c);renderNav();
+  const b=$('#cartCount');if(b){b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
+  if(view==='menu')renderMenu();
+  if($('#cartCanvas').classList.contains('show'))renderCart();
+}
+function renderCart(){
+  const c=cart(),M=menu(),rows=Object.entries(c).map(([id,q])=>({f:M.find(x=>x.id===id),q})).filter(r=>r.f);
+  if(!rows.length){$('#cartBody').innerHTML='<div class="text-center text-secondary my-auto"><div style="font-size:3rem">🛒</div><p>Your cart is empty.<br>Add something from the menu.</p></div>';return}
+  const total=rows.reduce((a,r)=>a+r.f.price*r.q,0);
+  $('#cartBody').innerHTML=rows.map(({f,q})=>`<div class="d-flex align-items-center gap-2 py-2 border-bottom"><span class="emo-sm">${esc(f.emoji)}</span>
+    <div class="flex-grow-1"><div class="fw-bold">${esc(f.name)}</div><div class="small text-secondary">${inr(f.price)} · ${f.stock>=q?'Available':'<span class=text-danger>Only '+f.stock+' left</span>'}</div></div>
+    <div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" onclick="chg('${f.id}',-1)">−</button><span class="btn btn-light disabled">${q}</span><button class="btn btn-outline-secondary" onclick="chg('${f.id}',1)">+</button></div></div>`).join('')
+    +`<div class="mt-auto pt-3"><div class="d-flex justify-content-between fs-5 fw-bold mb-2"><span>Total</span><span>${inr(total)}</span></div>
+    <button class="btn btn-teal w-100 py-2" onclick="placeOrder()">Place order</button>
+    <button class="btn btn-link text-secondary w-100 mt-1" onclick="LS.set(cartKey(),{});renderNav();renderCart();view==='menu'&&renderMenu()">Clear cart</button></div>`;
+}
+function genToken(){const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let t='';for(let i=0;i<6;i++)t+=ch[Math.floor(Math.random()*ch.length)];return 'SC-'+t}
+function placeOrder(){
+  const c=cart(),M=menu(),items=[];let total=0;
+  for(const [id,q] of Object.entries(c)){
+    const f=M.find(x=>x.id===id);
+    if(!f||f.stock<q){toast((f?f.name:'An item')+' is no longer available in that quantity. Update your cart.');renderCart();return}
+    items.push({id,name:f.name,emoji:f.emoji,price:f.price,qty:q});total+=f.price*q;
+  }
+  if(!items.length)return;
+  items.forEach(i=>{M.find(f=>f.id===i.id).stock-=i.qty});LS.set('cc_menu',M);
+  let token;const O=orders();do{token=genToken()}while(O.some(o=>o.token===token));
+  const o={id:uid(),token,userId:me.id,userName:me.name,roll:me.roll||'',items,total,status:'Pending',createdAt:Date.now()};
+  O.unshift(o);LS.set('cc_orders',O);LS.set(cartKey(),{});
+  bootstrap.Offcanvas.getInstance($('#cartCanvas'))?.hide();
+  renderNav();if(view==='menu')renderMenu();
+  $('#tokText').textContent=token;makeQR($('#tokQr'),token);
+  new bootstrap.Modal($('#tokModal')).show();
+}
+
+/* ---------- student: orders ---------- */
+let sigStu='';
+function stepsHtml(s){const i=STATUS.indexOf(s);return `<div class="steps">${STATUS.map((x,k)=>`<div class="${k<i?'done':k===i?(s==='Collected'?'done':'cur'):''}">${x}</div>`).join('')}</div>`}
+function renderOrders(force){
+  const list=orders().filter(o=>o.userId===me.id), sig=JSON.stringify(list.map(o=>[o.id,o.status]));
+  if(!force&&sig===sigStu)return;sigStu=sig;
+  $('#myOrders').innerHTML=list.length?list.map(o=>`<div class="col-lg-6"><div class="order">
+    <div class="d-flex justify-content-between align-items-start"><div><div class="token fs-5">${o.token}</div><div class="small text-secondary">${new Date(o.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div><span class="st ${o.status}">${o.status}</span></div>
+    ${stepsHtml(o.status)}
+    <div class="d-flex gap-3 align-items-center"><div class="qrbox" id="qr-${o.id}"></div>
+    <div class="small flex-grow-1">${o.items.map(i=>`${i.emoji} ${esc(i.name)} × ${i.qty}`).join('<br>')}<div class="fw-bold mt-2 fs-6">${inr(o.total)}</div></div></div></div></div>`).join('')
+    :'<div class="col-12 text-center text-secondary py-5"><div style="font-size:3rem">🧾</div><p>No orders yet.</p><button class="btn btn-turmeric" onclick="go(\'menu\')">Order something</button></div>';
+  list.forEach(o=>{const el=document.getElementById('qr-'+o.id);if(el)makeQR(el,o.token)});
+}
+
+/* ---------- admin ---------- */
+$$('#adminTabs button').forEach(b=>b.onclick=()=>{adminTab=b.dataset.t;renderAdmin(true)});
+let sigAdm='';
+function renderAdmin(force){
+  $$('#adminTabs button').forEach(b=>b.classList.toggle('active',b.dataset.t===adminTab));
+  const O=orders();$('#pendBadge').textContent=O.filter(o=>o.status==='Pending').length;
+  const sig=adminTab+JSON.stringify(O.map(o=>[o.id,o.status]));
+  if(!force&&sig===sigAdm)return;sigAdm=sig;
+  const B=$('#adminBody');
+  if(adminTab==='ov'){
+    const M=menu(),rev=O.reduce((a,o)=>a+o.total,0);
+    B.innerHTML=`<div class="row g-3 mb-4">
+      ${[['Total orders',O.length],['Pending',O.filter(o=>o.status==='Pending').length],['Preparing',O.filter(o=>o.status==='Preparing').length],['Sales',inr(rev)]].map(([l,v])=>`<div class="col-6 col-lg-3"><div class="stat"><div class="text-secondary small">${l}</div><b>${v}</b></div></div>`).join('')}</div>
+      <h5>Stock alert</h5><div class="row g-2">${M.filter(f=>f.stock<=10).map(f=>`<div class="col-md-4"><div class="stat d-flex align-items-center gap-2"><span class="emo-sm">${esc(f.emoji)}</span><div><b class="fs-6">${esc(f.name)}</b><div class="small ${f.stock?'text-warning':'text-danger'}">${f.stock?f.stock+' left':'Sold out'}</div></div></div></div>`).join('')||'<p class="text-secondary">All items are well stocked.</p>'}</div>`;
+  }
+  if(adminTab==='food'){
+    B.innerHTML=`<div class="d-flex justify-content-between mb-2"><h5>Menu items</h5><button class="btn btn-teal" onclick="openFood()">+ Add food</button></div>
+    <div class="table-responsive"><table class="table bg-white align-middle"><thead><tr><th></th><th>Name</th><th>Meal</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>
+    ${menu().sort((a,b)=>MEALS.indexOf(a.cat)-MEALS.indexOf(b.cat)).map(f=>`<tr><td class="emo-sm">${f.img?`<img src="${esc(f.img)}" width="40" height="40" style="object-fit:cover;border-radius:8px" onerror="this.replaceWith('${esc(f.emoji)}')">`:esc(f.emoji)}</td><td>${esc(f.name)}</td><td>${f.cat}</td><td>${inr(f.price)}</td>
+    <td style="width:130px"><div class="input-group input-group-sm"><input type="number" min="0" class="form-control" value="${f.stock}" onchange="setStock('${f.id}',this.value)"></div></td>
+    <td class="text-end text-nowrap"><button class="btn btn-sm btn-outline-secondary" onclick="openFood('${f.id}')">Edit</button> <button class="btn btn-sm btn-outline-danger" onclick="delFood('${f.id}')">Delete</button></td></tr>`).join('')}
+    </tbody></table></div><p class="small text-secondary">Set stock to 0 to mark an item as sold out.</p>`;
+  }
+  if(adminTab==='ord'){
+    B.innerHTML=O.length?`<div class="row g-3">${O.map(o=>`<div class="col-lg-6"><div class="order">
+      <div class="d-flex justify-content-between"><div><span class="token fs-5">${o.token}</span><div class="small text-secondary">${esc(o.userName)} ${o.roll?'· '+esc(o.roll):''} · ${new Date(o.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div><span class="st ${o.status}">${o.status}</span></div>
+      <div class="small my-2">${o.items.map(i=>`${i.emoji} ${esc(i.name)} × ${i.qty}`).join(' · ')}</div>
+      <div class="d-flex justify-content-between align-items-center"><b>${inr(o.total)}</b>${nextBtn(o)}</div></div></div>`).join('')}</div>`:'<p class="text-secondary">No orders yet. New orders appear here by themselves.</p>';
+  }
+  if(adminTab==='ver'){
+    B.innerHTML=`<div class="row"><div class="col-md-6"><label class="form-label">Enter or scan the student's token</label>
+      <div class="input-group mb-3"><input id="vTok" class="form-control token" placeholder="SC-XXXXXX"><button class="btn btn-teal" onclick="verify()">Find order</button></div><div id="vRes"></div></div></div>`;
+  }
+}
+const nextLabel={Pending:'Start preparing',Preparing:'Mark ready',Ready:'Mark collected'};
+function nextBtn(o){return o.status==='Collected'?'<span class="text-success fw-bold">✓ Done</span>':`<button class="btn btn-turmeric btn-sm" onclick="advance('${o.id}')">${nextLabel[o.status]}</button>`}
+function advance(id){const O=orders(),o=O.find(x=>x.id===id);if(!o)return;o.status=STATUS[Math.min(STATUS.indexOf(o.status)+1,3)];LS.set('cc_orders',O);renderAdmin(true);if(adminTab==='ver')verify(true)}
+function verify(keep){
+  const t=($('#vTok').value||'').trim().toUpperCase(),o=orders().find(x=>x.token===t);
+  $('#vRes').innerHTML=o?`<div class="order"><div class="d-flex justify-content-between"><span class="token fs-5">${o.token}</span><span class="st ${o.status}">${o.status}</span></div><div class="small text-secondary">${esc(o.userName)} ${o.roll?'· '+esc(o.roll):''}</div>${stepsHtml(o.status)}<div class="small mb-2">${o.items.map(i=>`${i.emoji} ${esc(i.name)} × ${i.qty}`).join('<br>')}</div><div class="d-flex justify-content-between"><b>${inr(o.total)}</b>${nextBtn(o)}</div></div>`
+    :(t?'<div class="text-danger">No order found with this token. Check the code and try again.</div>':'');
+}
+function setStock(id,v){const M=menu(),f=M.find(x=>x.id===id);f.stock=Math.max(0,parseInt(v)||0);LS.set('cc_menu',M);toast(f.name+' stock set to '+f.stock);renderAdmin(true)}
+function delFood(id){if(!confirm('Delete this food item?'))return;LS.set('cc_menu',menu().filter(f=>f.id!==id));renderAdmin(true)}
+function openFood(id){
+  const f=id?menu().find(x=>x.id===id):{name:'',emoji:'🍽️',cat:'Lunch',price:'',stock:20,img:''};
+  $('#fmTitle').textContent=id?'Edit food':'Add food';$('#fId').value=id||'';
+  $('#fName').value=f.name;$('#fEmoji').value=f.emoji;$('#fCat').value=f.cat;$('#fPrice').value=f.price;$('#fStock').value=f.stock;$('#fImg').value=f.img||'';$('#fErr').textContent='';
+  bootstrap.Modal.getOrCreateInstance($('#foodModal')).show();
+}
+$('#fSave').onclick=()=>{
+  const name=$('#fName').value.trim(),price=parseFloat($('#fPrice').value),stock=parseInt($('#fStock').value);
+  if(!name||isNaN(price)||price<0||isNaN(stock)||stock<0){$('#fErr').textContent='Enter a name, a price and a stock number.';return}
+  const M=menu(),id=$('#fId').value,data={name,emoji:$('#fEmoji').value.trim()||'🍽️',cat:$('#fCat').value,price,stock,img:$('#fImg').value.trim()};
+  if(id)Object.assign(M.find(x=>x.id===id),data);else M.push({id:uid(),...data});
+  LS.set('cc_menu',M);bootstrap.Modal.getInstance($('#foodModal')).hide();toast(name+' saved');renderAdmin(true);
+};
+
+/* ---------- live refresh ---------- */
+setInterval(()=>{if(view==='orders'&&me)renderOrders(false);if(view==='admin'&&me&&adminTab!=='food'&&adminTab!=='ver')renderAdmin(false);else if(view==='admin')$('#pendBadge').textContent=orders().filter(o=>o.status==='Pending').length},3000);
+window.addEventListener('storage',e=>{me=LS.get('cc_session',null);if(view==='menu')renderMenu();if(view==='orders'&&me)renderOrders(false);if(view==='admin'&&me)renderAdmin(false)});
+
+go('home');
+</script>
+</body>
+</html>
